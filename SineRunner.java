@@ -11,6 +11,7 @@ public class SineRunner {
         JButton playButton = new JButton("Play");
         JButton stopButton = new JButton("Stop");
         JCheckBox excelBox = new JCheckBox("Create Excel File with Outputs");
+        JCheckBox visualBox = new JCheckBox("Show output of the wave");
         JButton removeSpreadsheetsButton = new JButton("Remove Pre-existing Spreadsheets");
 
         SineGenerator generator = new SineGenerator(440, 1, false, 3, 3, 30);
@@ -37,6 +38,13 @@ public class SineRunner {
             }
         });
 
+        visualBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                generator.setVisualStatus();
+            }
+        });
+
         removeSpreadsheetsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -49,6 +57,7 @@ public class SineRunner {
         panel.add(playButton);
         panel.add(stopButton);
         panel.add(excelBox);
+        panel.add(visualBox);
         panel.add(removeSpreadsheetsButton);
         frame.getContentPane().add(panel);
         frame.pack();

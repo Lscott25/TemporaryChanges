@@ -14,8 +14,11 @@ public class SineGenerator {
     private int numIterations = 0;
     private SourceDataLine line;
     private boolean createExcel = false;
+    private boolean showVisual = false;
     private int numVisualizers = 0;
     private boolean hasCreatedExcel = false;
+    private boolean hasShownVisual = false;
+    private boolean isPlaying = false;
 
     public SineGenerator(int freq, double amplitude, boolean incAng, double modAmp, int numMod, double numTime) {
         this.freq = freq;
@@ -46,12 +49,16 @@ public class SineGenerator {
                 excelOutput[i] = output[i];
             }
             else {
-                if  (createExcel && !hasCreatedExcel) {
+                if  (createExcel && !hasCreatedExcel && isPlaying) {
                     System.out.println(!hasCreatedExcel);
                     SpreadsheetMethods.writeToExcel(excelOutput, numIterations);
                     hasCreatedExcel = true;
-                    LineGraph.createLine(excelOutput);
                 }    
+
+                if (showVisual && !hasShownVisual && isPlaying) {
+                    LineGraph.createLine(excelOutput);
+                    hasShownVisual = true;
+                }
             }
         }
 
@@ -61,8 +68,14 @@ public class SineGenerator {
     public void setExcelStatus() {
         createExcel = !createExcel;
     }
+
+    public void setVisualStatus() {
+        showVisual = !showVisual;
+    }
     public void startPlayback() {
         hasCreatedExcel = false;
+        hasShownVisual = false;
+        isPlaying = true;
         numIterations++;
         new Thread(() -> {
             try {
@@ -93,6 +106,7 @@ public class SineGenerator {
             line.drain();
             line.close();
         }
+        isPlaying = false;
     }
 
     public static double recur(int amplitude, double angle, int num) {
