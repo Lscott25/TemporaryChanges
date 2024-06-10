@@ -14,6 +14,8 @@ public class SineGenerator {
     private int numIterations = 0;
     private SourceDataLine line;
     private boolean createExcel = false;
+    private int numVisualizers = 0;
+    private boolean hasCreatedExcel = false;
 
     public SineGenerator(int freq, double amplitude, boolean incAng, double modAmp, int numMod, double numTime) {
         this.freq = freq;
@@ -44,9 +46,12 @@ public class SineGenerator {
                 excelOutput[i] = output[i];
             }
             else {
-                if  (createExcel) {
+                if  (createExcel && !hasCreatedExcel) {
+                    System.out.println(!hasCreatedExcel);
                     SpreadsheetMethods.writeToExcel(excelOutput, numIterations);
-                }
+                    hasCreatedExcel = true;
+                    LineGraph.createLine(excelOutput);
+                }    
             }
         }
 
@@ -57,6 +62,7 @@ public class SineGenerator {
         createExcel = !createExcel;
     }
     public void startPlayback() {
+        hasCreatedExcel = false;
         numIterations++;
         new Thread(() -> {
             try {
@@ -72,7 +78,7 @@ public class SineGenerator {
                     for (int i = 0; i<(freq/10); i++) {
                         graphArr[i] = toneBuffer[i];
                     }
-                    LineGraph.createLine(graphArr);
+                
                     line.write(toneBuffer, 0, toneBuffer.length);
                 }
             } catch (LineUnavailableException e) {
