@@ -7,18 +7,20 @@ public class SineGenerator {
     protected static final int SAMPLE_RATE = 16 * 1024;
     private int freq;
     private double amplitude;
+    
     private boolean inclAng;
     private double modAmp;
     private int numMod;
     private double numTime;
+    
     private int numIterations = 0;
-    private SourceDataLine line;
     private boolean createExcel = false;
     private boolean showVisual = false;
-    private int numVisualizers = 0;
     private boolean hasCreatedExcel = false;
     private boolean hasShownVisual = false;
     private boolean isPlaying = false;
+
+    private SourceDataLine line;
 
     public SineGenerator(int freq, double amplitude, boolean incAng, double modAmp, int numMod, double numTime) {
         this.freq = freq;
