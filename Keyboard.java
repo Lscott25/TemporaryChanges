@@ -1,15 +1,3 @@
-Comments
-47
-
-
-Add a comment...
-
-
-Pinned by Leo Ono
-@LeoOno
-2 years ago
-Github deleted this project, so here's the source:
-
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
@@ -21,134 +9,134 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-/**
- * Java Virtual Piano
- * 
- * reference: https://docs.oracle.com/javase/tutorial/sound/MIDI-synth.html
- * 
- * @author Leonardo Ono (ono.leo@gmail.com)
- */
-public class VirtualPianoView extends JPanel implements KeyListener {
-    
-    private Synthesizer synthesizer;
+public class Keyboard extends JPanel implements KeyListener {
+
     private MidiChannel channel;
+    private boolean[] whiteKeysPlayed = {false, false, false, false, false, false, false};
+    private int[] whiteKeyCodes = {65, 83, 68, 70, 71, 72, 74};
+    private boolean[] blackKeysPlayed = {false, false, false, false, false};
+    private int[] blackKeyCodes = {87, 69, 84, 98, 95};
+    private int[] blackKeyXPos = {27, 90, 205, 263, 320};
+
     
-    private String blackKeys = "WE TYU ";
-    private String whiteKeys = "ASDFGHJ";
-    private String allKeys = "AWSEDFTGYHUJ";
-    
-    private int octave = 5; // starts at middle C
-    private boolean[] keyOn = new boolean[allKeys.length()];
-    private static final int KEYS_PER_OCTAVE = 12;
-    
-    public VirtualPianoView() {
-        addKeyListener(this);
-        startSynthesizer();
+    public Keyboard () {
+        this.addKeyListener(this);
     }
 
-    private void startSynthesizer()  {
-        try {
-            synthesizer = MidiSystem.getSynthesizer();
-            synthesizer.open();
-            channel = synthesizer.getChannels()[0];
+    @Override
+    public void keyPressed(KeyEvent e) {
+        switch(e.getKeyCode()) {
+            case 65: whiteKeysPlayed[0] = true; 
+                    break;
+            case 83: whiteKeysPlayed[1] = true;
+                    break;
+            case 68: whiteKeysPlayed[2] = true;
+                    break;
+            case 70: whiteKeysPlayed[3] = true;
+                    break;
+            case 71: whiteKeysPlayed[4] = true;
+                    break;
+            case 72: whiteKeysPlayed[5] = true;
+                    break;
+            case 74: whiteKeysPlayed[6] = true;
+                    break;
+    
+            case 87: blackKeysPlayed[0] = true;
+                    break;
+            case 69: blackKeysPlayed[1] = true;
+                    break;
+            case 84: blackKeysPlayed[2] = true;
+                    break;
+            case 89: blackKeysPlayed[3] = true;
+                    break;
+            case 85: blackKeysPlayed[4] = true;
+                    break;
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
+        this.repaint();
+
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        this.setBackground(Color.green);
         
-        g.translate(50, 50);
-        
-        g.drawString("Octave: " + octave, 0, -10);
-        
-        // draw white keys
-        final int WHITE_KEY_WIDTH = 40;
-        final int WHITE_KEY_HEIGHT = 100;
-        for (int k = 0; k < whiteKeys.length(); k++) {
-            g.setColor(keyOn[allKeys.indexOf(whiteKeys.charAt(k))] ? Color.GREEN : Color.WHITE);
-            g.fillRect(k * WHITE_KEY_WIDTH, 0, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
-            g.setColor(Color.BLACK);
-            g.drawRect(k * WHITE_KEY_WIDTH, 0, WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT);
-            g.drawString(" " + whiteKeys.charAt(k), k * WHITE_KEY_WIDTH + 10, WHITE_KEY_HEIGHT - 10);
-        }
 
-        // draw black keys
-        final int BLACK_KEY_WIDTH = WHITE_KEY_WIDTH / 2;
-        final int BLACK_KEY_HEIGHT = WHITE_KEY_HEIGHT / 2;
-        for (int k = 0; k < blackKeys.length(); k++) {
-            if (blackKeys.charAt(k) == ' ') {
-                continue;
+        g.setColor(Color.red);
+        for (int i = 0; i<5; i++) {
+            g.setColor(Color.red);
+            if (blackKeysPlayed[i]) {
+                g.setColor(Color.white);
             }
-            int x = (k + 1) * WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2;
-            g.setColor(keyOn[allKeys.indexOf(blackKeys.charAt(k))] ? Color.GREEN : Color.BLACK);
-            g.fillRect(x, 1, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
-            g.setColor(Color.WHITE);
-            g.drawRect(x, 1, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT);
-            g.drawString(" " + blackKeys.charAt(k), x + 2, BLACK_KEY_HEIGHT - 5);
-        }
-    }
-    
-    @Override
-    public void keyTyped(KeyEvent e) {
-        // do nothing
-    }
 
-    @Override
-    public void keyPressed(KeyEvent e) {
-        repaint();
-        
-        // select octave using 0~8 keys
-        if ("012345678".contains("" + e.getKeyChar())) {
-            octave = e.getKeyCode() - 48;
+            g.fillRect(blackKeyXPos[i], this.getHeight()-210, 53, 96);
         }
         
-        // select octave using '+' or '-' keys
-        if (e.getKeyChar() == '+') {
-            octave = octave < 8 ? octave + 1 : 8;
+        for (int i = 0; i<7; i++) {
+            g.setColor(Color.black);
+            if (whiteKeysPlayed[i]) {
+                g.setColor(Color.white);
+            }
+            g.fillRect(i*58, this.getHeight()-110, 53, 110);
         }
-        else if (e.getKeyChar() == '-') {
-            octave = octave > 0 ? octave - 1 : 0;
-        }
-        
-        // play a note
-        int noteIndex = allKeys.indexOf((char) e.getKeyCode()); 
-        if (noteIndex < 0 || keyOn[noteIndex]) {
-            return;
-        }
-        keyOn[noteIndex] = true;
-        channel.noteOn(octave * KEYS_PER_OCTAVE + noteIndex, 90);
-    }
 
-    @Override
-    public void keyReleased(KeyEvent e) {
-        repaint();
-        int noteIndex = allKeys.indexOf((char) e.getKeyCode()); 
-        if (noteIndex < 0) {
-            return;
-        }
-        keyOn[noteIndex] = false;
-        channel.noteOff(octave * KEYS_PER_OCTAVE + noteIndex);
+        
+
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                VirtualPianoView view = new VirtualPianoView();
+                Keyboard view = new Keyboard();
                 JFrame frame = new JFrame();
-                frame.setSize(400, 300);
+                frame.setSize(396, 300);
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame.setLocationRelativeTo(null);
+                frame.setResizable(false);
                 frame.getContentPane().add(view);
                 frame.setVisible(true);
                 view.requestFocus();
             }
         });
     }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        switch(e.getKeyCode()) {
+            case 65: whiteKeysPlayed[0] = false; 
+                    break;
+            case 83: whiteKeysPlayed[1] = false;
+                    break;
+            case 68: whiteKeysPlayed[2] = false;
+                    break;
+            case 70: whiteKeysPlayed[3] = false;
+                    break;
+            case 71: whiteKeysPlayed[4] = false;
+                    break;
+            case 72: whiteKeysPlayed[5] = false;
+                    break;
+            case 74: whiteKeysPlayed[6] = false;
+                    break;
+    
+            case 87: blackKeysPlayed[0] = false;
+                    break;
+            case 69: blackKeysPlayed[1] = false;
+                    break;
+            case 84: blackKeysPlayed[2] = false;
+                    break;
+            case 89: blackKeysPlayed[3] = false;
+                    break;
+            case 85: blackKeysPlayed[4] = false;
+                    break;
+        }
+        this.repaint();
+    }
+
     
 }
