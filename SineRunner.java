@@ -1,67 +1,59 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
+import javax.sound.midi.*;
 
-public class SineRunner {
-    public static void main(String[] args) throws FileNotFoundException {
-        JFrame frame = new JFrame("Sound Player");
-        JPanel panel = new JPanel(new GridLayout(0, 1));
-        JButton playButton = new JButton("Play");
-        JButton stopButton = new JButton("Stop");
-        JCheckBox excelBox = new JCheckBox("Create Excel File with Outputs");
-        JCheckBox visualBox = new JCheckBox("Show output of the wave");
-        JButton removeSpreadsheetsButton = new JButton("Remove Pre-existing Spreadsheets");
-
-        SineGenerator generator = new SineGenerator(440, 1, false, 3, 3, 30);
-
-
-        playButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                generator.startPlayback();
+public class MidiNoteReader {
+    public static void main(String[] args) {
+        try {
+            // Get the default MIDI device
+            MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
+            MidiDevice device = null;
+            
+            // Find and open a suitable MIDI device
+            for (MidiDevice.Info info : infos) {
+                device = MidiSystem.getMidiDevice(info);
+                if (device.getMaxTransmitters() != 0) {
+                    device.open();
+                    break;
+                }
             }
-        });
-
-        stopButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                generator.stopPlayback();
+            
+            if (device == null || !device.isOpen()) {
+                System.out.println("No suitable MIDI device found or couldn't open the device.");
+                return;
             }
-        });
 
-        excelBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                generator.setExcelStatus();
-            }
-        });
+            // Get the transmitter from the device
+            Transmitter transmitter = device.getTransmitter();
+            
+            // Create a receiver to listen for MIDI messages
+            Receiver receiver = new Receiver() {
+                @Override
+                public void send(MidiMessage message, long timeStamp) {
+                    if (message instanceof ShortMessage) {
+                        ShortMessage sm = (ShortMessage) message;
+                        if (sm.getCommand() == ShortMessage.NOTE_ON) {
+                            int key = sm.getData1();
+                            int velocity = sm.getData2();
+                            if (velocity > 0) { // Only consider note-on messages with non-zero velocity
+                                System.out.println("Note on: " + key);
+                            }
+                        }
+                    }
+                }
 
-        visualBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                generator.setVisualStatus();
-            }
-        });
+                @Override
+                public void close() {
+                }
+            };
 
-        removeSpreadsheetsButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                SpreadsheetMethods.removePreexistingFiles();
-            }
-        });
+            // Attach the receiver to the transmitter
+            transmitter.setReceiver(receiver);
 
-        
+            // Keep the program running to listen for MIDI input
+            System.out.println("Listening for MIDI input. Press Ctrl+C to exit.");
+            Thread.sleep(Long.MAX_VALUE);
 
-        panel.add(playButton);
-        panel.add(stopButton);
-        panel.add(excelBox);
-        panel.add(visualBox);
-        panel.add(removeSpreadsheetsButton);
-        frame.getContentPane().add(panel);
-        frame.pack();
-        frame.setVisible(true);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        } catch (MidiUnavailableException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
-}
+} I'm
